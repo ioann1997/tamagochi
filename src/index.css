@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Nunito", system-ui, sans-serif;
+  --color-cream: #fff8f0;
+  --color-mint: #a8e6cf;
+  --color-coral: #ff8b94;
+  --color-sky: #88d8f5;
+  --color-lavender: #c7b8ea;
+  --color-sun: #ffd93d;
+  --color-ink: #2d3436;
+  --color-panel: #ffffff;
+}
+
+@layer base {
+  body {
+    @apply m-0 min-h-svh bg-cream font-sans text-ink antialiased;
+  }
+
+  #root {
+    @apply min-h-svh;
+  }
+}
