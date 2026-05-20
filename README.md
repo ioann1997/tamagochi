@@ -52,7 +52,7 @@ firebase deploy --only firestore:rules
 
 ```bash
 git init   # уже выполнено при настройке проекта
-git remote add origin https://github.com/YOUR_USER/tamagochi.git
+git remote add origin https://github.com/ioann1997/tamagochi.git
 git push -u origin main
 ```
 
