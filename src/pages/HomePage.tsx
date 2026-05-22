@@ -24,7 +24,7 @@ export function HomePage() {
   return (
     <div className="flex flex-col gap-8 p-4 md:p-8">
       <div className="grid gap-8 lg:grid-cols-2">
-        <section className="flex flex-col items-center rounded-3xl border-2 border-lavender/40 bg-panel p-6 shadow-md">
+        <section className="flex flex-col items-center overflow-hidden rounded-3xl border-2 border-lavender/40 bg-panel p-4 shadow-md sm:p-6">
           <PetAvatar
             mood={state.mood}
             petName={state.petName}
