@@ -12,16 +12,24 @@ export const DEFAULT_STATE: GameState = {
   hunger: 70,
   happiness: 60,
   completedTaskIds: [],
-  unlockedRewardIds: [],
+  purchasedRewardIds: [],
   lastTaskResetDate: getTodayKey(),
   totalTasksCompleted: 0,
   interactionsToday: 0,
 };
 
+export function migrateState(raw: Partial<GameState> & { unlockedRewardIds?: string[] }): GameState {
+  const merged = { ...DEFAULT_STATE, ...raw };
+  if (!merged.purchasedRewardIds?.length && raw.unlockedRewardIds?.length) {
+    merged.purchasedRewardIds = raw.unlockedRewardIds;
+  }
+  return merged;
+}
+
 export function loadLocalState(): GameState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return { ...DEFAULT_STATE, ...JSON.parse(raw) };
+    if (raw) return migrateState(JSON.parse(raw));
   } catch {
     /* ignore */
   }

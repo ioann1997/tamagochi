@@ -40,7 +40,7 @@ export function TopMenu() {
         </button>
 
         <div className="flex items-center gap-1.5 rounded-xl border border-white/60 bg-white/85 px-2 py-1 text-[10px] font-bold shadow-md backdrop-blur-md">
-          <span>🪙 {state.coins}</span>
+          <span>★ {state.coins}</span>
           <span className="text-ink/30">|</span>
           <span>Ур.{state.level}</span>
         </div>

@@ -8,19 +8,19 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { DAILY_TASKS } from '../data/tasks';
+import { DAILY_TASKS, ALL_TASKS_BONUS_POINTS } from '../data/tasks';
 import { REWARDS } from '../data/rewards';
 import type { GameState, Notification, TabId } from '../types/game';
 import {
   addXp,
   calculateMood,
 } from '../utils/gameLogic';
-import { checkRewards } from '../utils/rewards';
 import {
   applyDailyReset,
   clearLocalState,
   DEFAULT_STATE,
   loadLocalState,
+  migrateState,
   saveLocalState,
 } from '../constants/gameDefaults';
 import { useAuth } from './AuthContext';
@@ -37,11 +37,10 @@ interface GameContextValue {
   notifications: Notification[];
   dismissNotification: (id: string) => void;
   completeTask: (taskId: string) => void;
+  purchaseReward: (rewardId: string) => void;
   interact: (action: 'pet' | 'feed' | 'play' | 'sleep') => void;
   setPetName: (name: string) => void;
   resetProgress: () => void;
-  newRewardIds: string[];
-  clearNewRewards: () => void;
   syncStatus: SyncStatus;
   isCloudSync: boolean;
 }
@@ -55,7 +54,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
   );
   const [activeTab, setActiveTab] = useState<TabId>('home');
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [newRewardIds, setNewRewardIds] = useState<string[]>([]);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
   const [gameReady, setGameReady] = useState(!firebaseReady);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -102,8 +100,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
         if (remote) {
           skipNextSaveRef.current = true;
-          setState(applyDailyReset(remote));
-          saveLocalState(applyDailyReset(remote));
+          const normalized = applyDailyReset(migrateState(remote));
+          setState(normalized);
+          saveLocalState(normalized);
           setSyncStatus('synced');
         } else {
           skipNextSaveRef.current = true;
@@ -174,20 +173,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(interval);
   }, []);
 
-  const applyRewards = useCallback((next: GameState) => {
-    const newIds = checkRewards(next);
-    if (newIds.length === 0) return next;
-    setNewRewardIds((prev) => [...prev, ...newIds]);
-    newIds.forEach((id) => {
-      const r = REWARDS.find((x) => x.id === id);
-      if (r) pushNotification(`Награда: ${r.title}! ${r.icon}`, 'reward');
-    });
-    return {
-      ...next,
-      unlockedRewardIds: [...next.unlockedRewardIds, ...newIds],
-    };
-  }, [pushNotification]);
-
   const completeTask = useCallback(
     (taskId: string) => {
       const task = DAILY_TASKS.find((t) => t.id === taskId);
@@ -196,12 +181,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
       setState((prev) => {
         if (prev.completedTaskIds.includes(taskId)) return prev;
 
+        const completedTaskIds = [...prev.completedTaskIds, taskId];
+        const allDone = completedTaskIds.length === DAILY_TASKS.length;
+        let pointsGain = task.pointsReward;
+        if (allDone) pointsGain += ALL_TASKS_BONUS_POINTS;
+
         let next: GameState = {
           ...prev,
-          completedTaskIds: [...prev.completedTaskIds, taskId],
-          coins: prev.coins + task.coinReward,
-          happiness: Math.min(100, prev.happiness + 15),
-          hunger: Math.min(100, prev.hunger + 10),
+          completedTaskIds,
+          coins: prev.coins + pointsGain,
+          happiness: Math.min(100, prev.happiness + 12),
+          hunger: Math.min(100, prev.hunger + 8),
           totalTasksCompleted: prev.totalTasksCompleted + 1,
         };
 
@@ -210,15 +200,48 @@ export function GameProvider({ children }: { children: ReactNode }) {
         next.mood = calculateMood(next, DAILY_TASKS.length);
 
         if (next.level > beforeLevel) {
-          pushNotification(`Уровень ${next.level}! Новые возможности открыты`, 'levelup');
+          next.coins += 10;
+          pushNotification(`Уровень ${next.level}! +10 баллов`, 'levelup');
+        } else if (allDone) {
+          pushNotification(
+            `+${task.pointsReward} баллов · бонус за все дейлики +${ALL_TASKS_BONUS_POINTS}`,
+            'success',
+          );
         } else {
-          pushNotification(`+${task.xpReward} XP, +${task.coinReward} монет`, 'success');
+          pushNotification(`+${task.pointsReward} баллов`, 'success');
         }
 
-        return applyRewards(next);
+        return next;
       });
     },
-    [applyRewards, pushNotification],
+    [pushNotification],
+  );
+
+  const purchaseReward = useCallback(
+    (rewardId: string) => {
+      const reward = REWARDS.find((r) => r.id === rewardId);
+      if (!reward) return;
+
+      setState((prev) => {
+        if (prev.purchasedRewardIds.includes(rewardId)) {
+          pushNotification('Эта награда уже выбрана', 'success');
+          return prev;
+        }
+        if (prev.coins < reward.cost) {
+          pushNotification(`Нужно ещё ${reward.cost - prev.coins} баллов`, 'success');
+          return prev;
+        }
+
+        pushNotification(`${reward.icon} ${reward.title} — ваша награда!`, 'reward');
+
+        return {
+          ...prev,
+          coins: prev.coins - reward.cost,
+          purchasedRewardIds: [...prev.purchasedRewardIds, rewardId],
+        };
+      });
+    },
+    [pushNotification],
   );
 
   const interact = useCallback(
@@ -273,7 +296,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
     clearLocalState();
     skipNextSaveRef.current = true;
     setState(DEFAULT_STATE);
-    setNewRewardIds([]);
 
     if (user) {
       try {
@@ -291,8 +313,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
   }, []);
 
-  const clearNewRewards = useCallback(() => setNewRewardIds([]), []);
-
   const value = useMemo(
     () => ({
       state,
@@ -301,11 +321,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
       notifications,
       dismissNotification,
       completeTask,
+      purchaseReward,
       interact,
       setPetName,
       resetProgress,
-      newRewardIds,
-      clearNewRewards,
       syncStatus,
       isCloudSync,
     }),
@@ -315,11 +334,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
       notifications,
       dismissNotification,
       completeTask,
+      purchaseReward,
       interact,
       setPetName,
       resetProgress,
-      newRewardIds,
-      clearNewRewards,
       syncStatus,
       isCloudSync,
     ],

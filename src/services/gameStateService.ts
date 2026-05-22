@@ -1,7 +1,7 @@
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import type { GameState } from '../types/game';
 import { db, isFirebaseConfigured } from '../lib/firebase';
-import { DEFAULT_STATE } from '../constants/gameDefaults';
+import { migrateState } from '../constants/gameDefaults';
 
 const GAME_DOC_PATH = (uid: string) => `users/${uid}/saves/default`;
 
@@ -15,7 +15,7 @@ export async function fetchGameState(uid: string): Promise<GameState | null> {
 
   const data = snap.data();
   const { updatedAt: _updatedAt, ...gameState } = data;
-  return { ...DEFAULT_STATE, ...(gameState as Partial<GameState>) };
+  return migrateState(gameState as Partial<GameState> & { unlockedRewardIds?: string[] });
 }
 
 export async function saveGameState(uid: string, state: GameState): Promise<void> {

@@ -77,7 +77,7 @@ export function TaskList({ mini, compact = false }: { mini?: boolean; compact?: 
                 <p className="mt-1 text-sm text-ink/60">{task.description}</p>
               )}
               <p className="mt-2 text-xs font-semibold text-coral">
-                +{task.xpReward} XP · +{task.coinReward} 🪙
+                +{task.xpReward} XP · +{task.pointsReward} ★
               </p>
             </div>
           </li>

@@ -7,7 +7,7 @@ export interface Task {
   title: string;
   description: string;
   xpReward: number;
-  coinReward: number;
+  pointsReward: number;
 }
 
 export interface Reward {
@@ -15,8 +15,7 @@ export interface Reward {
   title: string;
   description: string;
   icon: string;
-  requiredLevel: number;
-  requiredTasks?: number;
+  cost: number;
 }
 
 export interface Location {
@@ -43,7 +42,7 @@ export interface GameState {
   hunger: number;
   happiness: number;
   completedTaskIds: string[];
-  unlockedRewardIds: string[];
+  purchasedRewardIds: string[];
   lastTaskResetDate: string;
   totalTasksCompleted: number;
   interactionsToday: number;
