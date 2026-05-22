@@ -1,66 +1,29 @@
-const RULES = [
-  {
-    title: 'Цель игры',
-    body: 'Заботься о виртуальном питомце: выполняй ежедневные задания, взаимодействуй с ним и повышай уровень. Чем лучше уход — тем счастливее питомец.',
-  },
-  {
-    title: 'Очки и опыт (XP)',
-    body: 'За каждое задание и действие (погладить, покормить, играть) начисляется XP. Каждые 100×уровень XP — новый уровень. С уровнем открываются локации и способности.',
-  },
-  {
-    title: 'Монеты',
-    body: 'За задания выдаются монеты 🪙. Их можно копить; некоторые награды привязаны к количеству монет.',
-  },
-  {
-    title: 'Настроение',
-    body: 'Питомец бывает в восторге, радости, спокойствии, скуке или грусти. Настроение зависит от счастья, сытости и доли выполненных заданий за день. Не выполняй задания — питомец заскучает.',
-  },
-  {
-    title: 'Ежедневные задания',
-    body: 'Список из 6 заданий сбрасывается в полночь. Выполни все — получи достижение «Идеальный день».',
-  },
-  {
-    title: 'Показатели',
-    body: 'Сытость и счастье медленно падают со временем. Корми и играй, чтобы держать их высокими.',
-  },
-  {
-    title: 'Локации и способности',
-    body: 'С 2 уровня — сад, с 4 — парк, с 6 — пляж, с 8 — замок. На 3 уровне открывается «Играть», на 5 — танец, на 7 — телепорт.',
-  },
-  {
-    title: 'Сохранение',
-    body: 'Прогресс сохраняется в браузере (localStorage). После входа в аккаунт — синхронизация с Firebase Firestore на всех устройствах. Можно сбросить прогресс на странице уровней.',
-  },
-  {
-    title: 'Аккаунт',
-    body: 'Войдите по email/паролю или через Google. При первом входе локальный прогресс загружается в облако. Без входа игра работает офлайн.',
-  },
+import { ContentPanel } from '../components/layout/ContentPanel';
+
+const RULES_SHORT = [
+  { t: 'Цель', b: 'Задания + уход → XP и уровень' },
+  { t: 'XP', b: '100×уровень = новый уровень' },
+  { t: 'Монеты', b: 'За задания, для наград' },
+  { t: 'Настроение', b: 'От счастья, сытости, заданий' },
+  { t: 'Задания', b: '6 в день, сброс в полночь' },
+  { t: 'Облако', b: 'Вход → Firestore синхронизация' },
 ];
 
 export function RulesPage() {
   return (
-    <div className="p-4 md:p-8">
-      <h2 className="mb-2 text-2xl font-extrabold text-ink">Правила игры</h2>
-      <p className="mb-8 text-ink/60">Как устроен тамагочи и за что даются баллы</p>
-
-      <div className="mx-auto max-w-2xl space-y-4">
-        {RULES.map((rule, i) => (
-          <article
-            key={rule.title}
-            className="rounded-2xl border-2 border-lavender/40 bg-panel p-5 shadow-sm"
+    <ContentPanel className="max-h-[32vh]">
+      <h2 className="mb-1.5 text-xs font-extrabold text-ink">Правила</h2>
+      <ul className="grid grid-cols-2 gap-1">
+        {RULES_SHORT.map((r) => (
+          <li
+            key={r.t}
+            className="rounded-lg bg-white/60 px-1.5 py-1 text-left"
           >
-            <h3 className="flex items-center gap-2 font-bold text-ink">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-lavender/50 text-sm">
-                {i + 1}
-              </span>
-              {rule.title}
-            </h3>
-            <p className="mt-3 text-left text-sm leading-relaxed text-ink/80">
-              {rule.body}
-            </p>
-          </article>
+            <p className="text-[10px] font-bold leading-tight text-ink">{r.t}</p>
+            <p className="text-[9px] leading-tight text-ink/65">{r.b}</p>
+          </li>
         ))}
-      </div>
-    </div>
+      </ul>
+    </ContentPanel>
   );
 }

@@ -1,25 +1,58 @@
-import { motion } from 'framer-motion';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
 import { useGame } from '../../context/GameContext';
 import { DAILY_TASKS } from '../../data/tasks';
 
-export function TaskList({ compact = false }: { compact?: boolean }) {
+export function TaskList({ mini, compact = false }: { mini?: boolean; compact?: boolean }) {
   const { state, completeTask } = useGame();
+
+  if (mini) {
+    return (
+      <ul className="grid grid-cols-2 gap-1">
+        {DAILY_TASKS.map((task) => {
+          const done = state.completedTaskIds.includes(task.id);
+          return (
+            <li key={task.id}>
+              <button
+                type="button"
+                disabled={done}
+                onClick={() => completeTask(task.id)}
+                className={`flex w-full items-center gap-1 rounded-lg border px-1 py-1 text-left transition-colors ${
+                  done
+                    ? 'border-mint/60 bg-mint/30'
+                    : 'border-white/70 bg-white/60 active:bg-mint/20'
+                }`}
+              >
+                <span
+                  className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
+                    done ? 'border-mint bg-mint' : 'border-ink/25'
+                  }`}
+                >
+                  {done && <CheckCircleIcon className="h-3 w-3 text-ink" />}
+                </span>
+                <span
+                  className={`min-w-0 flex-1 truncate text-[9px] font-bold leading-tight ${
+                    done ? 'line-through opacity-60' : ''
+                  }`}
+                >
+                  {task.title}
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    );
+  }
 
   return (
     <ul className={`flex flex-col gap-3 ${compact ? '' : 'max-w-2xl'}`}>
-      {DAILY_TASKS.map((task, i) => {
+      {DAILY_TASKS.map((task) => {
         const done = state.completedTaskIds.includes(task.id);
         return (
-          <motion.li
+          <li
             key={task.id}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05 }}
             className={`flex items-start gap-4 rounded-2xl border-2 p-4 transition-colors ${
-              done
-                ? 'border-mint bg-mint/20'
-                : 'border-lavender/50 bg-panel shadow-sm'
+              done ? 'border-mint bg-mint/20' : 'border-lavender/50 bg-panel shadow-sm'
             }`}
           >
             <button
@@ -47,7 +80,7 @@ export function TaskList({ compact = false }: { compact?: boolean }) {
                 +{task.xpReward} XP · +{task.coinReward} 🪙
               </p>
             </div>
-          </motion.li>
+          </li>
         );
       })}
     </ul>

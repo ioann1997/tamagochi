@@ -1,8 +1,6 @@
-import { AnimatePresence, motion } from 'framer-motion';
 import { AuthProvider } from './context/AuthContext';
 import { GameProvider, useGame } from './context/GameContext';
-import { Sidebar } from './components/layout/Sidebar';
-import { Notifications } from './components/layout/Notifications';
+import { AppShell } from './components/layout/AppShell';
 import { HomePage } from './pages/HomePage';
 import { TasksPage } from './pages/TasksPage';
 import { RulesPage } from './pages/RulesPage';
@@ -21,25 +19,10 @@ function AppContent() {
   };
 
   const Page = pages[activeTab];
-
   return (
-    <div className="flex min-h-svh flex-col md:flex-row">
-      <Sidebar />
-      <main className="flex-1 overflow-y-auto bg-cream">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2 }}
-          >
-            <Page />
-          </motion.div>
-        </AnimatePresence>
-      </main>
-      <Notifications />
-    </div>
+    <AppShell>
+      <Page />
+    </AppShell>
   );
 }
 

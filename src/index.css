@@ -13,11 +13,14 @@
 }
 
 @layer base {
+  html,
   body {
-    @apply m-0 min-h-svh bg-cream font-sans text-ink antialiased;
+    @apply m-0 h-dvh overflow-hidden bg-ink font-sans text-ink antialiased;
+    overscroll-behavior: none;
+    touch-action: manipulation;
   }
 
   #root {
-    @apply min-h-svh;
+    @apply h-dvh overflow-hidden;
   }
 }
